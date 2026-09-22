@@ -1,0 +1,9 @@
+FROM python:3.13-slim
+WORKDIR /app
+COPY pyproject.toml README.md ./
+COPY src ./src
+COPY content ./content
+RUN pip install --no-cache-dir ".[api]"
+ENV INFOAULA_SEED=/app/content/seed.json
+EXPOSE 8000
+CMD ["uvicorn", "infoaula_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
