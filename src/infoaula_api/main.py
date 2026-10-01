@@ -20,6 +20,7 @@ Endpoints:
 from __future__ import annotations
 
 import json
+import logging
 import os
 import random
 from datetime import datetime, timezone
@@ -37,7 +38,11 @@ except ImportError:  # quando rodado como pacote isolado
 
 VERSION = "0.1.0"
 
+log = logging.getLogger("infoaula_api")
+
 app = FastAPI(title="InfoAula API", version=VERSION, description="Conteúdo didático para o InfoAula CLI (somente leitura no MVP).")
+# API pública somente-leitura: libera GET de qualquer origem (sem cookies/auth),
+# então CORS aberto aqui não expõe credencial. Se um dia houver login, restringir.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -94,7 +99,8 @@ def _load_pg() -> list[ContentItem] | None:
             obj = blob if isinstance(blob, dict) else json.loads(blob)
             items.append(ContentItem.model_validate(obj))
         return items
-    except Exception:  # noqa: BLE001 — fallback para seed se o PG falhar
+    except Exception as e:  # fallback para seed se o PG falhar (com log, sem vazar URL)
+        log.warning("PostgreSQL indisponível, usando seed local: %s", type(e).__name__)
         return None
 
 
@@ -155,11 +161,11 @@ def categories() -> list[dict]:
 
 @app.get("/items", response_model=list[ContentItem])
 def items(
-    category: str | None = Query(default=None),
-    kind: str | None = Query(default=None),
-    difficulty: str | None = Query(default=None),
-    q: str | None = Query(default=None),
-    limit: int = Query(default=100, le=500),
+    category: str | None = Query(default=None, max_length=60),
+    kind: str | None = Query(default=None, max_length=30),
+    difficulty: str | None = Query(default=None, max_length=30),
+    q: str | None = Query(default=None, max_length=100),
+    limit: int = Query(default=50, ge=1, le=100),
 ) -> list[ContentItem]:
     return _filter(get_all(), category, kind, difficulty, q)[:limit]
 
@@ -188,10 +194,10 @@ def exercicio(
 
 @app.get("/random", response_model=ContentItem, summary="Item aleatório com filtros")
 def random_item(
-    category: str | None = Query(default=None),
-    kind: str | None = Query(default=None),
-    difficulty: str | None = Query(default=None),
-    q: str | None = Query(default=None),
+    category: str | None = Query(default=None, max_length=60),
+    kind: str | None = Query(default=None, max_length=30),
+    difficulty: str | None = Query(default=None, max_length=30),
+    q: str | None = Query(default=None, max_length=100),
 ) -> ContentItem:
     """GET /random?kind=atalho&category=windows → 1 item aleatório filtrado."""
     return _pick_one(_filter(get_all(), category, kind, difficulty, q))
@@ -199,8 +205,8 @@ def random_item(
 
 @app.get("/comandos", response_model=list[ContentItem], summary="Atalho p/ shell")
 def comandos(
-    sistema: str | None = Query(default=None, description="windows|linux|powershell"),
-    limit: int = Query(default=100, le=500),
+    sistema: str | None = Query(default=None, max_length=30, description="windows|linux|powershell"),
+    limit: int = Query(default=50, ge=1, le=100),
 ) -> list[ContentItem]:
     """GET /comandos?sistema=linux → igual a /items?kind=comando&category=linux."""
     out = [i for i in get_all() if i.kind.lower() == "comando"]
@@ -212,8 +218,8 @@ def comandos(
 
 @app.get("/atalhos", response_model=list[ContentItem], summary="Atalho p/ shell")
 def atalhos(
-    sistema: str | None = Query(default=None, description="windows|linux"),
-    limit: int = Query(default=100, le=500),
+    sistema: str | None = Query(default=None, max_length=30, description="windows|linux"),
+    limit: int = Query(default=50, ge=1, le=100),
 ) -> list[ContentItem]:
     """GET /atalhos?sistema=windows → igual a /items?kind=atalho filtrado."""
     out = [i for i in get_all() if i.kind.lower() == "atalho"]

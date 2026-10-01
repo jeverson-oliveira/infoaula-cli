@@ -18,6 +18,7 @@ import sqlite3
 from typing import Annotated
 
 import typer
+from rich.markup import escape
 from rich.panel import Panel
 from rich.prompt import Prompt
 from rich.table import Table
@@ -113,7 +114,7 @@ def _cmd_comandos(sistema: str | None) -> None:
     cmds = [i for i in items if i.kind == "comando"]
     show = cmds or items
     if not show:
-        console.print(f"[yellow]Nada encontrado para '{sistema}'. Tente: windows, linux, powershell.[/yellow]")
+        console.print(f"[yellow]Nada encontrado para '{escape(sistema or '')}'. Tente: windows, linux, powershell.[/yellow]")
         _cmd_categorias(conn)
         conn.close()
         return
@@ -133,7 +134,7 @@ def _cmd_atalhos(sistema: str | None) -> None:
         if not items:  # fallback: qualquer atalho do SO
             items = [i for i in store.list_items(conn, kind="atalho") if filtro in (i.os or "") or filtro in i.category]
     if not items:
-        console.print(f"[yellow]Nenhum atalho para '{sistema}'.[/yellow]")
+        console.print(f"[yellow]Nenhum atalho para '{escape(sistema or '')}'.[/yellow]")
         conn.close()
         return
     console.print(items_table(items, title=f"Atalhos{f' — {sistema}' if sistema else ''}"))
@@ -145,7 +146,7 @@ def _cmd_buscar(termo: str) -> None:
     items = store.search(conn, termo)
     conn.close()
     if not items:
-        console.print(f"[yellow]Nada encontrado para '{termo}'. Tente 'arquivo', 'rede', 'atalho'...[/yellow]")
+        console.print(f"[yellow]Nada encontrado para '{escape(termo)}'. Tente 'arquivo', 'rede', 'atalho'...[/yellow]")
         return
     console.print(items_table(items, title=f"Busca: {termo}"))
 
@@ -185,10 +186,10 @@ def _cmd_status() -> None:
     console.print(Panel.fit(
         f"[bold]InfoAula v{__version__}[/bold]\n"
         f"Modo: {mode}\n"
-        f"API: {api_url}\n"
+        f"API: {escape(api_url)}\n"
         f"Itens locais: [bold]{total}[/bold]\n"
-        f"Última sync: {last.isoformat() if last else 'nunca'}\n"
-        f"Banco: {store.db_path()}",
+        f"Última sync: {escape(last.isoformat()) if last else 'nunca'}\n"
+        f"Banco: {escape(str(store.db_path()))}",
         title="Status",
     ))
     if cats:
@@ -202,7 +203,9 @@ def _cmd_status() -> None:
 
 def _cmd_sync(api_url: str | None) -> None:
     url = api_client.get_api_url(api_url)
-    console.print(f"[dim]Sincronizando com {url}...[/dim]")
+    if url.startswith("http://") and "localhost" not in url and "127.0.0.1" not in url:
+        console.print("[yellow]Aviso: sync via HTTP sem TLS pode ser interceptado. Prefira https:// na VPS.[/yellow]")
+    console.print(f"[dim]Sincronizando com {escape(url)}...[/dim]")
     if not api_client.check_online(url):
         console.print("[yellow]Sem internet ou API indisponível. Mantendo conteúdo local.[/yellow]")
         return

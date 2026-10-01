@@ -18,6 +18,14 @@ set -u
 API="${INFOAULA_URL:-http://localhost:8000}"
 API="${API%/}"
 
+# Repo público p/ escolas: curl|bash via HTTP permite MITM injetar shell.
+# Em produção use https:// (Caddy/Traefik/Cloudflare). Aviso abaixo não bloqueia
+# o uso em laboratório (http://192.168.x.x), mas deixa o risco explícito.
+case "$API" in
+  http://localhost*|http://127.0.0.1*|https://*) ;;
+  http://*) echo "AVISO: $API usa HTTP sem TLS — um atacante na rede pode alterar o script e o conteúdo. Prefira https:// na VPS." >&2 ;;
+esac
+
 need() { command -v "$1" >/dev/null 2>&1 || { echo "Falta '$1'. No Linux: sudo apt install $1 | No Git-Bash: já vem com curl." >&2; exit 1; }; }
 need curl
 need python3

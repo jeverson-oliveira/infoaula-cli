@@ -2,14 +2,17 @@ services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
+    # ATENÇÃO repo público: credencial abaixo é SÓ dev local.
+    # Na VPS use .env (veja .env.example) e nunca exponha a porta do banco.
     environment:
-      POSTGRES_USER: infoaula
-      POSTGRES_PASSWORD: change-me-via-env
-      POSTGRES_DB: infoaula
+      POSTGRES_USER: ${POSTGRES_USER:-infoaula}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-infoaula_dev_only_trocar_em_prod}
+      POSTGRES_DB: ${POSTGRES_DB:-infoaula}
     volumes:
       - pgdata:/var/lib/postgresql/data
+    # sem `ports:` de propósito — banco acessível só dentro da rede compose
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U infoaula"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-infoaula}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -20,7 +23,7 @@ services:
       dockerfile: docker/Dockerfile.api
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql+psycopg2://infoaula:change-me-via-env@db:5432/infoaula
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-infoaula}:${POSTGRES_PASSWORD:-infoaula_dev_only_trocar_em_prod}@db:5432/${POSTGRES_DB:-infoaula}
     depends_on:
       db:
         condition: service_healthy

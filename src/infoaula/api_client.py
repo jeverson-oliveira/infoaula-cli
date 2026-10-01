@@ -19,6 +19,7 @@ def get_api_url(explicit: str | None = None) -> str:
 def check_online(api_url: str | None = None, timeout: float = 2.5) -> bool:
     url = get_api_url(api_url)
     try:
+        # verify padrão do httpx (True): nunca desabilitar em repo público/escola
         r = httpx.get(f"{url}/health", timeout=timeout)
         return r.status_code == 200
     except Exception:  # noqa: BLE001 — offline é estado normal, qualquer erro = offline
@@ -30,6 +31,9 @@ def fetch_sync(api_url: str | None = None, timeout: float = 10.0) -> SyncPayload
     url = get_api_url(api_url)
     r = httpx.get(f"{url}/sync", timeout=timeout)
     r.raise_for_status()
+    # Defesa básica: limita corpo do /sync a ~2MB (impede resposta gigante travar o lab)
+    if len(r.content) > 2 * 1024 * 1024:
+        raise ValueError("Resposta /sync grande demais (>2MB), abortando")
     payload = SyncPayload.model_validate(r.json())
     if payload.updated_at is None:
         payload.updated_at = datetime.now(timezone.utc)

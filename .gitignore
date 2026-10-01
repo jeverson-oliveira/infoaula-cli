@@ -9,3 +9,12 @@ build/
 .ruff_cache/
 .db
 *.db
+# --- segredos / ambiente local (nunca commitar) ---
+.env
+.env.local
+.env.*.local
+!.env.example
+*.pem
+*.key
+id_rsa*
+secrets/
