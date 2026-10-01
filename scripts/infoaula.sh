@@ -11,6 +11,8 @@
 #   ./scripts/infoaula.sh exercicio --nivel iniciante
 #
 # Sem instalar nada (zero-install, ideal p/ aluno):
+#   curl -sSL $INFOAULA_URL/infoaula.sh | bash -s
+#     → sem argumentos abre o MENU interativo (ideal p/ crianca)
 #   curl -sSL $INFOAULA_URL/infoaula.sh | bash -s dica
 #   curl -sSL $INFOAULA_URL/infoaula.sh | bash -s buscar "rede"
 #
@@ -36,8 +38,9 @@ ajuda() {
   cat <<EOF
 InfoAula via API ($API)
 
-Uso:
-  $(basename "$0") status                    → API online? quantos itens?
+Uso (sem argumentos = menu interativo):
+  $(basename "$0")                         → abre o menu (oque crianca quer)
+  $(basename "$0") status                  → API online? quantos itens?
   $(basename "$0") comandos [linux|windows|powershell]
   $(basename "$0") atalhos [windows|linux]
   $(basename "$0") buscar "copiar arquivo"
@@ -45,12 +48,52 @@ Uso:
   $(basename "$0") exercicio [--nivel iniciante|intermediario|avancado]
   $(basename "$0") categorias
 
-Exemplos VPS:
-  INFOAULA_URL=http://SEU-VPS:8080 $(basename "$0") dica
-  curl -sSL \$INFOAULA_URL/infoaula.sh | bash -s buscar "rede"
+Sem instalar nada:
+  curl -sSL \$INFOAULA_URL/infoaula.sh | bash -s        → menu
+  curl -sSL \$INFOAULA_URL/infoaula.sh | bash -s dica   → direto
 
 Variável: INFOAULA_URL (padrão http://localhost:8000)
 EOF
+}
+
+# Menu interativo p/ crianca. Usa /dev/tty p/ ler o teclado mesmo quando o
+# script veio por pipe (curl | bash) — stdin é o próprio script, não o teclado.
+menu() {
+  if [ ! -r /dev/tty ]; then ajuda; return; fi
+  term() { # lê uma linha do terminal real em $1 (prompt: $2)
+    printf "%s" "$2" > /dev/tty || return 1
+    read -r "$1" < /dev/tty || return 1
+  }
+  while true; do
+    {
+      printf "\n============ InfoAula ============\n"
+      printf "  1) Ver comandos (Linux/Windows)\n"
+      printf "  2) Ver atalhos de teclado\n"
+      printf "  3) Buscar qualquer coisa\n"
+      printf "  4) Dica rapida\n"
+      printf "  5) Exercicio (iniciante)\n"
+      printf "  6) Status do servidor\n"
+      printf "  7) Categorias\n"
+      printf "  0) Sair\n"
+      printf "  Escolha: "
+    } > /dev/tty
+    local escolha=""
+    read -r escolha < /dev/tty || { printf "\nAte logo!\n" > /dev/tty; return; }
+    case "$escolha" in
+      0) printf "Ate logo!\n" > /dev/tty; return ;;
+      1) $CURL "$API/comandos" | fmt_lista ;;
+      2) $CURL "$API/atalhos" | fmt_lista ;;
+      3)
+        term _q "  Buscar por: " || return
+        if [ -n "$_q" ]; then $CURL -G "$API/items" --data-urlencode "q=$_q" | fmt_lista; fi
+        ;;
+      4) $CURL "$API/dica" | fmt_um ;;
+      5) $CURL -G "$API/exercicio" --data-urlencode "nivel=iniciante" | fmt_um ;;
+      6) cmd_status ;;
+      7) cmd_categorias ;;
+      *) printf "  Opcao invalida. Tente 0 a 7.\n" > /dev/tty ;;
+    esac
+  done
 }
 
 # Formata lista JSON [{title,category,command,description,example}] em texto legível
@@ -123,7 +166,8 @@ for c in json.load(sys.stdin):
 ' || { echo "Falha ao falar com $API"; exit 1; }
 }
 
-case "${1:-ajuda}" in
+case "${1:-}" in
+  "") menu ;;
   ajuda|help|--help|-h) ajuda ;;
   status) cmd_status ;;
   comandos)

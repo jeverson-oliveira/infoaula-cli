@@ -6,9 +6,10 @@
 #   docker compose -f docker-compose.vps.yml up -d --build
 #   curl -s http://localhost:8080/health
 #
-# Aluno (sem instalar nada):
-#   export INFOAULA_URL=http://SEU-VPS:8080
-#   curl -sSL $INFOAULA_URL/infoaula.sh | bash -s dica
+# Aluno (sem instalar nada, a URL vem embutida no script):
+#   Windows: iex (irm http://SEU-VPS:8080/infoaula.ps1)
+#   Linux:   curl -sSL http://SEU-VPS:8080/infoaula.sh | bash -s
+#   → abre o menu interativo
 
 services:
   api:

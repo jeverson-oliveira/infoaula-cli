@@ -1,114 +1,145 @@
-# InfoAula CLI 📚💻
+# InfoAula 📚
 
-**Seu auxiliar de informática dentro do terminal.**
+**Aprenda comandos de informática direto no terminal — sem instalar nada.**
 
-O InfoAula ajuda **alunos e monitores** a consultar comandos, atalhos de teclado,
-conceitos básicos e exercícios — direto no terminal, **mesmo sem internet**.
-
-```
-infoaula              → abre o menu interativo (comece por aqui!)
-infoaula comandos linux
-infoaula atalhos
-infoaula buscar "copiar arquivo"
-infoaula dica
-infoaula exercicio --nivel iniciante
-infoaula status
-infoaula sync
-```
-
-> **Para professores/monitores:** há um [roteiro de aula](#-roteiro-de-aula-40-min)
-> pronto no final deste guia.
+O InfoAula mostra comandos, atalhos, conceitos e exercícios de informática.
+Roda no **Windows** e no **Linux**, e funciona mesmo sem internet no laboratório.
 
 ---
 
-## 1. O que você precisa (requisitos)
+## 👦👧 Aluno — comece aqui (2 passos)
 
-| Item     | Mínimo    | Recomendado | Como conferir              |
-|----------|-----------|-------------|----------------------------|
-| Python   | 3.10      | 3.13+       | `python --version`         |
-| pip      | qualquer  | junto ao Python | `pip --version`        |
-| Sistema  | Windows 10+ ou Linux | qualquer um dos dois | —        |
-| Internet | **não precisa** | só para `sync` | `infoaula status` |
+Você precisa de **duas coisas**:
 
-Não sabe se sua máquina está pronta? O projeto inclui um **script de
-verificação** que diz exatamente o que falta — veja o passo 0.
+1. Um **endereço** que o professor escreve no quadro, parecido com
+   `http://SERVIDOR-DA-ESCOLA:8080`
+2. O **terminal** do seu computador
 
----
+### 🪟 Windows
 
-## 2. Passo 0 — Verifique seu ambiente (1 minuto)
+1. Tecle **Windows + R**, digite `powershell` e dê **Enter**
+2. Cole a linha abaixo e dê **Enter** (troque o endereço pelo do professor):
 
-Abra o terminal na pasta do projeto e rode:
+```powershell
+iex (irm http://SERVIDOR-DA-ESCOLA:8080/infoaula.ps1)
+```
+
+Pronto! Aparece um **menu**. Digite o **número** da opção e **Enter**.
+
+### 🐧 Linux
+
+Abra o **Terminal** (**Ctrl + Alt + T**) e cole:
 
 ```bash
-python scripts/verificar_ambiente.py
+curl -sSL http://SERVIDOR-DA-ESCOLA:8080/infoaula.sh | bash -s
 ```
 
-> No Linux, se `python` não existir, use `python3 scripts/verificar_ambiente.py`.
+Pronto! O mesmo **menu** aparece. Digite o **número** e **Enter**.
 
-Saída esperada quando está tudo certo:
-
-```
-== InfoAula · Verificação do ambiente ==
-
-Sistema: Linux 6.x (x86_64)
-[OK] Python: Python 3.13.x (versão recomendada ou superior).
-[OK] pip: pip disponível (instalador de pacotes do Python).
-[!] venv: Nenhum venv ativo. Recomendado criar um...
-
--- Recomendação --
-Tudo certo! Próximo passo:
-  pip install -e .  →  infoaula status
-```
-
-- `[OK]` → pronto.
-- `[!]` → funciona, mas tem recomendação de melhoria (leia a dica).
-- `[X]` → precisa resolver antes de continuar (o script diz como).
+> ⚠️ Não funciona? Veja [Problemas comuns](#-problemas-comuns).
+> Digitou errado? É só colar de novo — nada quebra.
 
 ---
 
-## 3. Passo 1 — Instale o Python (só se o script pedir)
+## O que o menu faz
 
-**Windows (PowerShell):**
+| Número | O que aparece |
+|---|---|
+| **1** | Comandos de Linux e Windows (ls, dir, cd...) |
+| **2** | Atalhos de teclado (Ctrl + C, Win + D...) |
+| **3** | Buscar qualquer palavra (ex: `rede`, `arquivo`) |
+| **4** | Uma dica rápida 💡 |
+| **5** | Um exercício para praticar 📝 |
+| **6** | Se o servidor está funcionando |
+| **7** | As categorias de conteúdo |
+| **0** | Sair |
 
-Opção A — site oficial: baixe em <https://www.python.org/downloads/> e, na
-primeira tela do instalador, **marque a caixa "Add python.exe to PATH"**.
+### Comandos digitados (se preferir digitar em vez do menu)
 
-Opção B — via terminal:
-
-```powershell
-winget install Python.Python.3.13
-```
-
-Feche e reabra o PowerShell depois de instalar, e confira:
-
-```powershell
-python --version
-```
-
-**Linux (Debian, Ubuntu, Mint):**
+**Linux** (com o script salvo, veja o resumo abaixo):
 
 ```bash
-sudo apt update && sudo apt install python3 python3-pip python3-venv
-python3 --version
+./infoaula.sh comandos linux      # ou: windows, powershell
+./infoaula.sh atalhos windows
+./infoaula.sh buscar "copiar arquivo"
+./infoaula.sh dica
+./infoaula.sh exercicio --nivel iniciante
+./infoaula.sh status
 ```
+
+**Windows** (PowerShell, com o script salvo):
+
+```powershell
+.\infoaula.ps1 comandos linux
+.\infoaula.ps1 buscar "copiar arquivo"
+.\infoaula.ps1 dica
+.\infoaula.ps1 exercicio --nivel iniciante
+```
+
+**No navegador** também funciona (dados em JSON) — abra o endereço do
+professor e depois `/dica`: `http://SERVIDOR-DA-ESCOLA:8080/dica`
 
 ---
 
-## 4. Passo 2 — Instale o InfoAula
+## 🍎 Roteiro de aula (40 min) — para o professor
 
-Recomendamos um **ambiente virtual** (venv): ele isola os pacotes do projeto e
-evita bagunça no Python do sistema.
+1. **Entrar (5 min):** cada aluno abre o terminal e cola a linha da aula até
+   ver o menu. Quem terminar ajuda o colega.
+2. **Comandos (10 min):** opção **1** → ver a lista de comandos (Linux e
+   Windows aparecem juntos). Cada aluno executa `ls` (ou `dir`) e `pwd` no
+   próprio terminal.
+3. **Atalhos (10 min):** opção **2** → cada aluno testa 3 atalhos e conta
+   para a turma qual economiza mais tempo.
+4. **Desafio (10 min):** opção **3** → busca por `rede`. Descobrir o IP da
+   máquina (`ipconfig` no Windows, `ip a` no Linux) e `ping 8.8.8.8`.
+5. **Exercício (5 min):** opção **5** → cada um faz o exercício que aparecer.
 
-**Windows (PowerShell):**
+Sem internet no laboratório? O professor pode rodar o servidor no próprio
+computador (veja abaixo) e usar o endereço da rede local (ex:
+`http://192.168.1.10:8080`).
 
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -e .
-infoaula status
+---
+
+<details>
+<summary><b>🖥️ Professor: colocar o servidor no ar (1 vez, ~5 min)</b></summary>
+
+Precisa de Docker em uma máquina (VPS, notebook do professor ou PC do lab):
+
+```bash
+git clone https://github.com/jeverson-oliveira/infoaula-cli.git
+cd infoaula-cli
+docker compose -f docker-compose.vps.yml up -d --build
 ```
 
-**Linux (Bash):**
+Confira: `curl http://localhost:8080/health` deve responder `ok`.
+
+* **A URL dos alunos** é `http://SEU-IP-OU-DOMINIO:8080` — escreva no quadro.
+* Libere a porta **8080** no firewall/security group da VPS.
+* Atualizar conteúdo: edite `content/seed.json` e
+  `docker compose -f docker-compose.vps.yml restart api`.
+* **Em produção use `https://`** (Caddy, Traefik ou Cloudflare Tunnel) —
+  em HTTP puro um atacante na rede pode alterar o conteúdo. Detalhes em
+  [SECURITY.md](SECURITY.md).
+* Quer banco PostgreSQL completo (opcional): `docker compose up --build`
+  (usa `docker-compose.yml` com Postgres + Nginx).
+
+</details>
+
+<details>
+<summary><b>🐍 Opcional: instalar o InfoAula com Python (offline total)</b></summary>
+
+Para quem quer o CLI completo **no próprio computador, sem servidor**.
+Requer **Python 3.10+** (recomendado 3.13+).
+
+**Verifique o ambiente** (1 min):
+
+```bash
+python scripts/verificar_ambiente.py   # ou python3 no Linux
+```
+
+`[OK]` = pronto · `[!]` = recomendação · `[X]` = resolver antes.
+
+**Instale** (Linux):
 
 ```bash
 python3 -m venv .venv
@@ -117,64 +148,57 @@ pip install -e .
 infoaula status
 ```
 
-Se `infoaula status` mostrar a versão e a quantidade de itens locais, deu certo! 🎉
+**Instale** (Windows / PowerShell):
 
-> **Erro `externally-managed-environment`?** É o Linux pedindo para usar venv.
-> É só seguir os comandos acima (criar e ativar o `.venv`) que resolve.
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -e .
+infoaula status
+```
 
----
+Sem venv, o Linux pode reclamar `externally-managed-environment` — é só
+seguir os passos acima. Sem internet para instalar? Peça o pacote pronto
+ao professor, ou use o caminho do aluno no topo desta página (só precisa do
+servidor da escola).
 
-## 5. Passo 3 — Primeiros comandos
+</details>
 
-Abra o menu interativo (ideal para quem está começando):
+<details>
+<summary><b>🍎 Baixar o cliente uma vez (opcional, evita colar a linha toda hora)</b></summary>
+
+**Linux** — salve e use quantas vezes quiser:
 
 ```bash
-infoaula
+curl -sSL http://SERVIDOR-DA-ESCOLA:8080/infoaula.sh -o infoaula.sh
+chmod +x infoaula.sh
+./infoaula.sh                  # menu
+./infoaula.sh buscar "rede"    # direto
 ```
 
-| Quero...                  | Comando                              |
-|---------------------------|--------------------------------------|
-| Ver comandos de Linux     | `infoaula comandos linux`            |
-| Ver comandos de Windows   | `infoaula comandos windows`          |
-| Ver PowerShell            | `infoaula comandos powershell`       |
-| Ver atalhos de teclado    | `infoaula atalhos`                   |
-| Pesquisar qualquer coisa  | `infoaula buscar "copiar arquivo"`   |
-| Uma dica rápida           | `infoaula dica`                      |
-| Um exercício              | `infoaula exercicio --nivel iniciante` |
-| Ver se estou online       | `infoaula status`                    |
-| Atualizar o conteúdo      | `infoaula sync`                      |
-| Ver categorias            | `infoaula categorias`                |
+**Windows** — no PowerShell:
 
----
-
-## 6. 🍎 Roteiro de aula (40 min)
-
-1. **Ambiente (10 min):** cada aluno roda `scripts/verificar_ambiente.py` e
-   segue as recomendações até ver "Tudo certo!".
-2. **Navegação (10 min):** `infoaula comandos linux` (ou `windows`) +
-   `infoaula exercicio --nivel iniciante` — executar o exercício no terminal.
-3. **Atalhos (10 min):** `infoaula atalhos` — cada aluno testa 3 atalhos e
-   conta para a turma qual economiza mais tempo.
-4. **Desafio (10 min):** `infoaula buscar "rede"` → descobrir o IP da própria
-   máquina (`ipconfig` no Windows, `ip a` no Linux) e fazer `ping 8.8.8.8`.
-
-Sem internet no laboratório? Sem problema: tudo acima funciona offline.
-
----
-
-## 7. Como funciona (offline-first)
-
-```
-Aluno → InfoAula CLI → SQLite local → tem internet? ─ SIM → API FastAPI → PostgreSQL
-                                              └ NÃO → usa o conteúdo local
+```powershell
+irm http://SERVIDOR-DA-ESCOLA:8080/infoaula.ps1 -OutFile infoaula.ps1
+.\infoaula.ps1                 # menu
+.\infoaula.ps1 dica            # direto
 ```
 
-- **Sem internet:** tudo funciona com o banco local + `content/seed.json`.
-- **Com internet:** `infoaula sync` baixa novidades **sem reinstalar o CLI**.
-- **Conteúdo separado da lógica:** para adicionar conteúdo, edite
+Se o Windows reclamar de política de execução, abra o PowerShell assim:
+**Windows + X** → *Windows PowerShell* e cole de novo.
+
+</details>
+
+<details>
+<summary><b>⚙️ Como funciona (offline-first)</b></summary>
+
+```
+Aluno → cliente (shell/PowerShell) → servidor da escola (API) → content/seed.json
+                                   └ sem conexão? → mensagem amigável
+```
+
+* **Conteúdo separado da lógica:** para adicionar conteúdo, edite
   `content/seed.json` seguindo o modelo abaixo.
-
-Exemplo de item:
 
 ```json
 {
@@ -188,27 +212,19 @@ Exemplo de item:
 }
 ```
 
-Categorias disponíveis: `windows`, `powershell`, `linux`, `atalhos-windows`,
+Categorias: `windows`, `powershell`, `linux`, `atalhos-windows`,
 `atalhos-linux`, `conceitos`, `redes`, `arquivos`, `seguranca`,
 `produtividade`, `dicas`, `exercicios`.
 
----
+* **CLI com Python (offline total):** SQLite local + `infoaula sync`
+  baixa novidades sem reinstalar.
 
-## 8. Problemas comuns
+</details>
 
-| Erro / sintoma | Causa provável | Solução |
-|---|---|---|
-| `python não é reconhecido` (Windows) | PATH não marcado na instalação | Reinstale marcando "Add python.exe to PATH" |
-| `externally-managed-environment` | PEP 668: sistema protege o Python global | Use venv (passo 2) |
-| `infoaula: comando não encontrado` | venv desativado ou instalação incompleta | Ative o `.venv` e rode `pip install -e .` de novo |
-| `sync` diz "sem internet" | Sem rede ou API fora do ar | Normal! O conteúdo local continua funcionando |
-| `pip install` lento no laboratório | Rede da escola limitada | Instale uma vez e distribua a pasta `.venv`, ou use `sync` depois |
+<details>
+<summary><b>🔌 API e desenvolvimento (para quem vai além)</b></summary>
 
----
-
-## 9. Para quem quer ir além (opcional)
-
-**API remota** (serve conteúdo atualizado para os CLIs):
+**API remota** (os clientes consomem ela):
 
 ```bash
 pip install -e ".[api]"
@@ -217,45 +233,67 @@ uvicorn infoaula_api.main:app --reload
 
 | Método | Rota | Uso |
 |---|---|---|
+| GET | `/` | passo a rápido do aluno |
 | GET | `/health` | checagem online |
-| GET | `/sync` | o CLI baixa tudo aqui |
+| GET | `/sync` | o CLI Python baixa tudo aqui |
 | GET | `/items?category=linux&q=arquivo` | consulta filtrada |
+| GET | `/dica` · `/exercicio?nivel=` · `/random` | 1 item (atalho p/ shell) |
+| GET | `/comandos?sistema=` · `/atalhos?sistema=` | atalho p/ shell |
+| GET | `/infoaula.sh` · `/infoaula.ps1` | clientes zero-install |
 | GET | `/categories` | agrupado |
 
-Somente leitura no MVP (sem autenticação) de propósito — evita overengineering.
-
-**Docker:**
-
-```bash
-docker compose up --build
-# API via Nginx em http://localhost:8080/health
-```
+Somente leitura no MVP (sem autenticação) de propósito — evita
+overengineering.
 
 **Testes:**
 
 ```bash
-pip install -e ".[dev]"
+pip install -e ".[dev,api]"
 pytest -q
 ```
 
+**Estrutura do projeto:**
+
+```
+content/seed.json              conteúdo didático (editável)
+scripts/infoaula.sh            cliente Linux (zero-install)
+scripts/infoaula.ps1           cliente Windows (zero-install)
+scripts/verificar_ambiente.py  verificação do ambiente Python
+src/infoaula/                  CLI Python (Typer+Rich, SQLite)
+src/infoaula_api/              API FastAPI
+tests/                         pytest
+docker/ nginx/                 infra
+```
+
+</details>
+
 ---
 
-## 10. Estrutura do projeto
+## 🚨 Problemas comuns
 
-```
-content/seed.json            conteúdo didático (editável)
-scripts/verificar_ambiente.py  script de verificação do ambiente
-src/infoaula/                CLI: models, store (SQLite), api_client, cli (Typer+Rich), ui
-src/infoaula_api/            API FastAPI mínima
-tests/                       pytest
-docker/ nginx/               infra
-```
+| Erro / sintoma | Causa provável | Solução |
+|---|---|---|
+| `irm` / `iex` não funciona (Windows) | Linha digitada errada ou sem internet até o servidor | Cole de novo inteira; confira a URL com o professor |
+| `curl: command not found` (Linux) | curl não instalado | `sudo apt install curl` — ou use o PC do lab |
+| `connection refused` / não abre o menu | Servidor desligado ou URL errada | Confirme o endereço no quadro; avise o professor |
+| `Aviso: usa HTTP sem TLS` | Servidor sem HTTPS | Informativo — em sala está ok; o professor cuida disso |
+| Windows bloqueia `.\infoaula.ps1` | Política de execução | Use a linha `iex (irm ...)` (ela não é bloqueada) |
+| `externally-managed-environment` | Tentou instalar Python sem venv | Só quem instalou o CLI Python — siga o passo no resumo acima |
+| `infoaula: comando não encontrado` | CLI Python não instalado | Use a linha do aluno (não precisa de `infoaula`) |
 
-**Variáveis de ambiente:**
+---
+
+## 🔧 Variáveis de ambiente (avançado)
 
 | Var | Padrão | Uso |
 |---|---|---|
-| `INFOAULA_API_URL` | `http://localhost:8000` | URL da API |
+| `INFOAULA_URL` | `http://localhost:8000` | servidor dos clientes shell/PowerShell |
+| `INFOAULA_API_URL` | `http://localhost:8000` | servidor do CLI Python |
 | `INFOAULA_DB` | `~/.local/share/infoaula/infoaula.db` | banco local (útil em prova/aula) |
 | `INFOAULA_DATA_DIR` | idem | pasta de dados |
+| `INFOAULA_SEED` | `content/seed.json` | conteúdo da API |
 | `DATABASE_URL` | — | PostgreSQL da API |
+
+## Licença
+
+MIT — veja [SECURITY.md](SECURITY.md) para reportar vulnerabilidades.

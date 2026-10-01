@@ -36,6 +36,21 @@ def test_shell_shortcuts():
     assert c.get("/random", params={"kind": "atalho"}).status_code == 200
     assert c.get("/comandos", params={"sistema": "linux"}).status_code == 200
     assert c.get("/atalhos", params={"sistema": "windows"}).status_code == 200
+
+
+def test_shell_clients_and_quickstart():
+    c = TestClient(app)
     sh = c.get("/infoaula.sh")
     assert sh.status_code == 200
     assert "INFOAULA_URL" in sh.text
+    # a API injeta a propria URL no script (zero-install nao passa env var)
+    assert "http://testserver" in sh.text
+    assert "http://localhost:8000" not in sh.text
+    ps1 = c.get("/infoaula.ps1")
+    assert ps1.status_code == 200
+    assert "INFOAULA_URL" in ps1.text
+    assert "Invoke-RestMethod" in ps1.text
+    assert "http://testserver" in ps1.text
+    root = c.get("/")
+    assert root.status_code == 200
+    assert "iex (irm" in root.text and "infoaula.sh | bash" in root.text

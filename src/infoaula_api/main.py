@@ -14,7 +14,9 @@ Endpoints:
   GET /random      → 1 item aleatório com filtros
   GET /comandos    → atalho p/ shell (?sistema=linux)
   GET /atalhos     → atalho p/ shell (?sistema=windows)
-  GET /infoaula.sh → cliente shell (curl|bash sem instalar nada)
+  GET /infoaula.sh → cliente shell Linux (curl|bash sem instalar nada)
+  GET /infoaula.ps1→ cliente PowerShell Windows (iex|irm sem instalar nada)
+  GET /            → passo a rápido do aluno (texto p/ colar no terminal)
 """
 
 from __future__ import annotations
@@ -27,7 +29,7 @@ from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 
@@ -231,16 +233,61 @@ def atalhos(
     return out[:limit]
 
 
-@app.get("/infoaula.sh", response_class=PlainTextResponse, summary="Cliente shell (curl|bash)")
-def serve_shell_client() -> PlainTextResponse:
-    """Serve o cliente shell p/ uso sem instalação: curl -sSL $API/infoaula.sh | bash -s dica."""
+def _serve_script(filename: str, request: Request) -> PlainTextResponse:
     here = Path(__file__).resolve()
     candidates = [
-        here.parent.parent.parent / "scripts" / "infoaula.sh",
-        Path.cwd() / "scripts" / "infoaula.sh",
-        Path("/app/scripts/infoaula.sh"),
+        here.parent.parent.parent / "scripts" / filename,
+        Path.cwd() / "scripts" / filename,
+        Path("/app/scripts") / filename,
     ]
     for c in candidates:
         if c.exists():
-            return PlainTextResponse(c.read_text(encoding="utf-8"), media_type="text/x-shellscript")
-    raise HTTPException(status_code=404, detail="scripts/infoaula.sh não encontrado na imagem")
+            text = c.read_text(encoding="utf-8")
+            # Descobre a própria URL pública: quem baixa via curl/irm não passa
+            # variável de ambiente — o padrão localhost do script é trocado pela
+            # URL real da requisição (host + porta, com X-Forwarded-* atrás de proxy).
+            base = str(request.base_url).rstrip("/")
+            text = text.replace("http://localhost:8000", base)
+            media = "text/x-shellscript" if filename.endswith(".sh") else "text/plain"
+            return PlainTextResponse(text, media_type=media)
+    raise HTTPException(status_code=404, detail=f"scripts/{filename} não encontrado na imagem")
+
+
+@app.get("/infoaula.sh", response_class=PlainTextResponse, summary="Cliente shell Linux (curl|bash)")
+def serve_shell_client(request: Request) -> PlainTextResponse:
+    """curl -sSL $API/infoaula.sh | bash -s → menu interativo sem instalar nada."""
+    return _serve_script("infoaula.sh", request)
+
+
+@app.get("/infoaula.ps1", response_class=PlainTextResponse, summary="Cliente PowerShell Windows (iex|irm)")
+def serve_ps1_client(request: Request) -> PlainTextResponse:
+    """iex (irm $API/infoaula.ps1) → menu interativo sem instalar nada."""
+    return _serve_script("infoaula.ps1", request)
+
+
+@app.get("/", response_class=PlainTextResponse, summary="Passo a rápido do aluno")
+def quickstart(request: Request) -> PlainTextResponse:
+    """Texto simples p/ o aluno abrir no navegador e copiar o comando do SO dele."""
+    base = str(request.base_url).rstrip("/")
+    texto = f"""InfoAula - nada para instalar!
+
+ALUNO (escolha o SEU sistema):
+
+Windows (abra o PowerShell e cole):
+  iex (irm {base}/infoaula.ps1)
+
+Linux (abra o Terminal e cole):
+  curl -sSL {base}/infoaula.sh | bash -s
+
+Os dois abrem um MENU. Digite o numero da opcao e Enter.
+0 = sair.
+
+Conteudo direto no navegador (dados em JSON):
+  {base}/dica
+  {base}/exercicio?nivel=iniciante
+  {base}/comandos?sistema=linux
+  {base}/buscar?q=rede
+
+Servidor: {base}  |  Docs da API: {base}/docs
+"""
+    return PlainTextResponse(texto)
