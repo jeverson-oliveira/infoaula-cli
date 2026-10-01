@@ -27,3 +27,15 @@ def test_sync_and_filters():
     assert items.status_code == 200
     cats = c.get("/categories")
     assert cats.status_code == 200
+
+
+def test_shell_shortcuts():
+    c = TestClient(app)
+    assert c.get("/dica").status_code == 200
+    assert c.get("/exercicio", params={"nivel": "iniciante"}).status_code == 200
+    assert c.get("/random", params={"kind": "atalho"}).status_code == 200
+    assert c.get("/comandos", params={"sistema": "linux"}).status_code == 200
+    assert c.get("/atalhos", params={"sistema": "windows"}).status_code == 200
+    sh = c.get("/infoaula.sh")
+    assert sh.status_code == 200
+    assert "INFOAULA_URL" in sh.text
