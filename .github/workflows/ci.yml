@@ -24,3 +24,22 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  infra-guard:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: proibir IP, dominio real e rede de infraestrutura
+        run: |
+          fail=0
+          if git grep -niE 'duckdns|router-net|oracle|/opt/|ubuntu@|ssh -i ' -- . ':(exclude).github/workflows/ci.yml'; then
+            echo "::error::padrao de infraestrutura encontrado (linhas acima)"
+            fail=1
+          fi
+          if git grep -nE '\b([0-9]{1,3}\.){3}[0-9]{1,3}\b' -- . \
+            | grep -vE '8\.8\.8\.8|0\.0\.0\.0|127\.0\.0\.1|192\.168\.1\.10'; then
+            echo "::error::IP fora da allowlist didatica (8.8.8.8, 127.0.0.1, 0.0.0.0, 192.168.1.10)"
+            fail=1
+          fi
+          exit $fail

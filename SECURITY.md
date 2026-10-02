@@ -28,6 +28,18 @@ Projeto educacional, repo público, sem dados sensíveis por design.
 4. **Rede.** Não publique a porta do Postgres. Só `8080` (nginx/API)
    precisa ser acessível pelos alunos.
 
+## Regras do repo público (commits, issues e PRs)
+
+- O código é aberto; a **infraestrutura não**: nada de IP público, domínio
+  real, nome de rede Docker, hostname ou caminho de servidor em commits,
+  issues, PRs ou comentários. Use placeholders (`SEU-SERVIDOR`,
+  `SEU-DOMINIO`).
+- A CI roda dois guardas: **gitleaks** (credenciais) e **infra-guard**
+  (IP/rede/domínio), com allowlist didática: `8.8.8.8`, `127.0.0.1`,
+  `0.0.0.0`, `192.168.1.10`.
+- Arquivos de infraestrutura local (`docker-compose.override.yml`,
+  `infra/`) estão no `.gitignore` de propósito — não os remova.
+
 ## Reportar vulnerabilidade
 
 Abra uma issue privada ou e-mail ao mantenedor com: descrição, passos para
