@@ -10,4 +10,4 @@ USER appuser
 ENV INFOAULA_SEED=/app/content/seed.json PYTHONUNBUFFERED=1
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=4)"
-CMD ["uvicorn", "infoaula_api.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
+CMD ["uvicorn", "infoaula_api.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]
